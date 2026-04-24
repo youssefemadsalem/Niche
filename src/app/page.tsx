@@ -1,5 +1,8 @@
-import Image from "next/image";
+import { connectDB } from "@/lib/mongodb";
 
-export default function Home() {
+export default async function Home() {
+  await connectDB();
+  console.log("MongoDB connected ✅");
+
   return <div>HomePage</div>;
 }
