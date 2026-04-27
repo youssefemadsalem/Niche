@@ -1,35 +1,50 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Serif, Manrope } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/context/CartContext";
+
+const notoSerif = Noto_Serif({
+  subsets: ["latin"],
+  variable: "--font-noto-serif",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Niche",
-  description:
-    "Niche is a premium online perfume store offering luxury and niche fragrances. Discover authentic perfumes, exclusive scents, and secure shopping online.",
-  keywords: [
-    "niche perfume store",
-    "buy perfumes online",
-    "luxury perfumes",
-    "niche fragrances",
-    "best online perfume store",
-    "long-lasting perfumes",
-    "authentic perfumes online",
-    "perfume deals and discounts",
-    "unisex fragrances",
-    "fragrance marketplace",
-    "designer perfumes",
-    "perfume shop online",
-  ],
+  title: "NICHE — Curated Perfumery",
+  description: "Rare essences for the discerning collector.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${notoSerif.variable} ${manrope.variable}`}>
+      <body className="bg-[#F9F8F6] text-[#1A1A1A] antialiased">
+        {/*
+          ── NOTE FOR DEV1 ────────────────────────────────────────────────────
+          NextAuth v5 (your auth.ts) does NOT require a <SessionProvider> in
+          App Router. The auth() function is called server-side directly.
+
+          If Dev1 adds a client-side SessionProvider for any reason, nest it like:
+            <SessionProvider>
+              <CartProvider>
+                {children}
+              </CartProvider>
+            </SessionProvider>
+
+          CartProvider is safe to keep at this level regardless.
+          ────────────────────────────────────────────────────────────────────
+        */}
+        <CartProvider>{children}</CartProvider>
+      </body>
     </html>
   );
 }
