@@ -32,8 +32,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!isValid) return null;
 
         if (!user.isVerified) throw new Error("Please verify your email first");
-        if (user.isDeleted)
-          throw new Error("This account has been deactivated");
+        if (user.isDeleted) return null;
 
         return {
           id: user._id.toString(),
@@ -74,10 +73,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return false;
     },
 
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account }) {
+      if (user || account) {
         await connectDB();
-        const dbUser = await User.findOne({ email: user.email });
+        const dbUser = await User.findOne({ email: token.email });
+
         if (dbUser) {
           token.id = dbUser._id.toString();
           token.role = dbUser.role;

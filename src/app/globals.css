@@ -1,2 +1,26 @@
 @import "tailwindcss";
 @plugin "daisyui";
+
+:root {
+  --color-primary: #1a1a1a;
+  --color-secondary: #c5a059;
+  --color-tertiary: #e5d5b0;
+  --color-neutral: #f9f8f6;
+  --font-headline: var(--font-headline);
+  --font-body: var(--font-body);
+}
+
+body {
+  background-color: var(--color-neutral);
+  color: var(--color-primary);
+  font-family: var(--font-body), sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-headline), serif;
+}

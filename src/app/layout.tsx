@@ -1,6 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Serif, Manrope } from "next/font/google";
 import "./globals.css";
+
+const notoSerif = Noto_Serif({
+  subsets: ["latin"],
+  variable: "--font-headline",
+  weight: ["400", "700"],
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Niche",
@@ -24,12 +36,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en">
+      <body className={`${notoSerif.variable} ${manrope.variable} antialiased`}>
+        {children}
+      </body>
     </html>
   );
 }
