@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Serif, Manrope } from "next/font/google";
 import "./globals.css";
+import NextAuthSessionProvider from "@/components/SessionProvider";
 
 const notoSerif = Noto_Serif({
   subsets: ["latin"],
@@ -42,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${notoSerif.variable} ${manrope.variable} antialiased`}>
-        {children}
+        <NextAuthSessionProvider>{children}</NextAuthSessionProvider>
       </body>
     </html>
   );
