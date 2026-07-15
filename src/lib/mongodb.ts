@@ -1,12 +1,7 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
-
-if (!MONGODB_URI) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable in .env.local",
-  );
-}
+// 1. Keep the declaration at the top level, but do not crash here if it is undefined
+const MONGODB_URI = process.env.MONGODB_URI;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -22,6 +17,13 @@ global.mongoose = cached;
 
 export async function connectDB() {
   if (cached.conn) return cached.conn;
+
+  // 2. Safely throw the error inside the execution block only when called
+  if (!MONGODB_URI) {
+    throw new Error(
+      "Please define the MONGODB_URI environment variable in your configuration (.env.local)",
+    );
+  }
 
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
