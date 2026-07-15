@@ -1,6 +1,18 @@
 import { Resend } from "resend";
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+let resendInstance: Resend | null = null;
+
+// Helper to safely get or initialize Resend only on demand
+function getResend() {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error("Please define the RESEND_API_KEY environment variable.");
+    }
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 export async function sendVerificationEmail(
   email: string,
@@ -8,13 +20,16 @@ export async function sendVerificationEmail(
   name: string,
 ) {
   const verificationUrl = `${process.env.AUTH_URL}/api/auth/verify-email?token=${token}`;
+  
+  // Retrieve the instance safely at runtime
+  const resend = getResend();
 
   await resend.emails.send({
     from: "onboarding@resend.dev",
     to: email,
     subject: "Verify your email address",
     html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Welcome to Niche, ${name}!</h2>
         <p>Please verify your email address by clicking the button below:</p>
         <a href="${verificationUrl}" 
@@ -29,6 +44,6 @@ export async function sendVerificationEmail(
           If you didn't create an account, you can safely ignore this email.
         </p>
       </div>
-        `,
+    `,
   });
 }
