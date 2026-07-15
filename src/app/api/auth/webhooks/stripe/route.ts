@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  await connectDB(); // ✅ FIX: using Dev1's connectDB from mongodb.ts
+  await connectDB(); 
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -44,9 +44,13 @@ export async function POST(req: NextRequest) {
       const subtotal = (session.amount_subtotal ?? 0) / 100;
       const total = (session.amount_total ?? 0) / 100;
 
-      const order = await Order.create({
+      // Extract guestEmail cleanly to avoid any complex nested types for TypeScript
+      const guestEmailValue = meta.guestEmail || session.customer_email || undefined;
+
+      // Construct a clean database payload
+      const orderPayload = {
         userId: meta.userId || undefined,
-        guestEmail: meta.guestEmail || session.customer_email,
+        guestEmail: guestEmailValue ?? undefined, // Guarantees a string or undefined, never null
         items,
         shippingAddress: address,
         paymentMethod: "card",
@@ -60,20 +64,17 @@ export async function POST(req: NextRequest) {
         promoDiscount: parseFloat(meta.promoDiscount ?? "0"),
         total,
         promoCode: meta.promoCode || undefined,
-        status: "confirmed",
+        status: "confirmed" as const,
         statusHistory: [
           {
-            status: "confirmed",
+            status: "confirmed" as const,
             timestamp: new Date(),
             note: "Payment received via Stripe",
           },
         ],
-      });
+      };
 
-      // ── Email notification ────────────────────────────────────────────────
-      // Dev1 uses Resend (resend.ts). Plug in here when ready:
-      // import { resend } from '@/lib/resend';
-      // await resend.emails.send({ ... order confirmation email ... });
+      const order = await Order.create(orderPayload);
 
       console.log("✅ Order created:", order.orderNumber);
     } catch (err) {

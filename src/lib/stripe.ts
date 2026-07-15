@@ -2,10 +2,10 @@ import Stripe from 'stripe';
 
 let stripe: Stripe | null = null;
 
-export function getStripe(): Stripe {
+export function getStripe() {
   if (!stripe) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2024-06-20',
+      apiVersion: '2026-06-24.dahlia', // Update this line
     });
   }
   return stripe;

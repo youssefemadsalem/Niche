@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { Order } from '@/types';
 
-export default function CheckoutSuccessPage() {
+// 1. Move everything that consumes searchParams, state, and useEffect into a sub-component
+function SuccessContent() {
   const params = useSearchParams();
   const { clearCart } = useCart();
   const [order, setOrder] = useState<Order | null>(null);
@@ -20,17 +21,11 @@ export default function CheckoutSuccessPage() {
         .then(setOrder)
         .catch(console.error);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]); // Added params to dependency array to satisfy safe updates
 
   return (
-    <main className="min-h-screen bg-[#F9F8F6] flex flex-col items-center justify-center px-4 py-16">
-      <div className="w-20 h-20 rounded-full border-2 border-[#C5A059] flex items-center justify-center mb-8">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <path d="M6 16l8 8 12-16" stroke="#C5A059" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </div>
-
+    <>
       <p className="text-xs tracking-widest uppercase font-['Manrope'] text-[#C5A059] mb-2">
         Order Confirmed
       </p>
@@ -57,6 +52,32 @@ export default function CheckoutSuccessPage() {
           Continue Shopping
         </Link>
       </div>
+    </>
+  );
+}
+
+// 2. Wrap the dynamic component inside a Suspense Boundary in the main export
+export default function CheckoutSuccessPage() {
+  return (
+    <main className="min-h-screen bg-[#F9F8F6] flex flex-col items-center justify-center px-4 py-16">
+      <div className="w-20 h-20 rounded-full border-2 border-[#C5A059] flex items-center justify-center mb-8">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path d="M6 16l8 8 12-16" stroke="#C5A059" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+
+      <Suspense fallback={
+        <div className="text-center">
+          <p className="text-xs tracking-widest uppercase font-['Manrope'] text-[#C5A059] mb-2">
+            Verifying Order...
+          </p>
+          <p className="text-[#1A1A1A]/60 font-['Manrope'] text-sm">
+            Please wait while we retrieve your receipt details.
+          </p>
+        </div>
+      }>
+        <SuccessContent />
+      </Suspense>
     </main>
   );
 }

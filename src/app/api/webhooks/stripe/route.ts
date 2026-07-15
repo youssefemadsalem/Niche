@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  await connectDB(); // ✅ FIX: using Dev1's connectDB from mongodb.ts
+  await connectDB(); 
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -44,9 +44,14 @@ export async function POST(req: NextRequest) {
       const subtotal = (session.amount_subtotal ?? 0) / 100;
       const total = (session.amount_total ?? 0) / 100;
 
-      const order = await Order.create({
+      // 1. Force guestEmail to strictly be string | undefined (never null)
+      const guestEmailValue: string | undefined = 
+        meta.guestEmail || session.customer_email || undefined;
+
+      // 2. Define the payload with simple, explicit standard types
+      const newOrderData = {
         userId: meta.userId || undefined,
-        guestEmail: meta.guestEmail || session.customer_email,
+        guestEmail: guestEmailValue,
         items,
         shippingAddress: address,
         paymentMethod: "card",
@@ -68,12 +73,10 @@ export async function POST(req: NextRequest) {
             note: "Payment received via Stripe",
           },
         ],
-      });
+      };
 
-      // ── Email notification ────────────────────────────────────────────────
-      // Dev1 uses Resend (resend.ts). Plug in here when ready:
-      // import { resend } from '@/lib/resend';
-      // await resend.emails.send({ ... order confirmation email ... });
+      // 3. Pass the clean, un-nested object into the creator
+      const order = await Order.create(newOrderData);
 
       console.log("✅ Order created:", order.orderNumber);
     } catch (err) {

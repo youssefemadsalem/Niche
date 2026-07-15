@@ -3,13 +3,18 @@ import { connectDB } from "@/lib/mongodb";
 import { auth } from "@/lib/auth";
 import Product from "@/models/Product";
 
+// Define RouteContext with params wrapped in a Promise for Next.js 15+
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
 /**
  * PATCH - Update Product Details & Stock logic
  * This handles the "U" in CRUD for your Product Management task
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: RouteContext,
 ) {
   try {
     const session = await auth();
@@ -25,12 +30,14 @@ export async function PATCH(
       );
     }
 
+    // Await the asynchronous params object
+    const { id } = await params;
     const body = await req.json();
     await connectDB();
 
     // Ensure the seller can only update THEIR own product
     const updatedProduct = await Product.findOneAndUpdate(
-      { _id: params.id, seller: session.user.id },
+      { _id: id, seller: session.user.id },
       { $set: body },
       { new: true }, // Returns the modified document
     );
@@ -59,7 +66,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: RouteContext,
 ) {
   try {
     const session = await auth();
@@ -74,11 +81,13 @@ export async function DELETE(
       );
     }
 
+    // Await the asynchronous params object
+    const { id } = await params;
     await connectDB();
 
     // Only allow the owner to delete the product
     const deletedProduct = await Product.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       seller: session.user.id,
     });
 

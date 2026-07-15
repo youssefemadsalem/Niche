@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 
 const errorMessages: Record<string, string> = {
   "missing-token":
@@ -12,11 +13,21 @@ const errorMessages: Record<string, string> = {
   default: "An unexpected error occurred. Please try again.",
 };
 
-export default function AuthErrorPage() {
+// 1. Sub-component to read search parameters safely on the client side
+function ErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error") ?? "default";
   const message = errorMessages[error] ?? errorMessages.default;
 
+  return (
+    <p className="text-sm mb-8" style={{ color: "#6b7280" }}>
+      {message}
+    </p>
+  );
+}
+
+// 2. Main page export wrapped in Suspense
+export default function AuthErrorPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-8"
@@ -49,9 +60,11 @@ export default function AuthErrorPage() {
         >
           Something went wrong
         </h1>
-        <p className="text-sm mb-8" style={{ color: "#6b7280" }}>
-          {message}
-        </p>
+
+        {/* 3. Wrap your searchParams-dependent component inside a Suspense boundary */}
+        <Suspense fallback={<p className="text-sm mb-8 text-gray-400">Loading error details...</p>}>
+          <ErrorContent />
+        </Suspense>
 
         <div className="flex gap-3 justify-center">
           <Link
